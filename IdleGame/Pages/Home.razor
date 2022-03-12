@@ -1,0 +1,171 @@
+﻿@page "/"
+@using IdleGame.Domain
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Idle Game</h1>
+
+<p role="status">Wood: @Wood.Quantity</p>
+<p role="status">Stone: @Stone.Quantity</p>
+<p role="status">Food: @Food.Quantity</p>
+
+<button class="btn btn-primary" @onclick="@(WoodClicker.Click)" disabled="@WoodButtonDisabled">Collect Wood +@(WoodClicker.ProductionQuantity)</button>
+<button class="btn btn-primary" @onclick="@(StoneClicker.Click)" disabled="@StoneButtonDisabled">Collect Stone +@(StoneClicker.ProductionQuantity)</button>
+<button class="btn btn-primary" @onclick="@(FoodClicker.Click)" disabled="@FoodButtonDisabled">Collect Food +@(FoodClicker.ProductionQuantity)</button>
+<button class="btn btn-primary" @onclick="@(ForageClicker.Click)" disabled="@ForageButtonDisabled">Forage Party +@(ForageClicker.ProductionQuantity)</button>
+
+<button class="btn btn-primary" @onclick="@(UpgradeWoodCollector)">Buy Wood Collector +@(WoodCollector.ProductionQuantity)</button>
+<button class="btn btn-primary" @onclick="@(UpgradeStoneCollector)">Buy Stone Collector +@(StoneCollector.ProductionQuantity)</button>
+<button class="btn btn-primary" @onclick="@(UpgradeFoodCollector)">Buy Food Collector +@(FoodCollector.ProductionQuantity)</button>
+
+@code {
+    protected bool WoodButtonDisabled = false;
+    protected bool StoneButtonDisabled = false;
+    protected bool FoodButtonDisabled = false;
+    protected bool ForageButtonDisabled = false;
+
+    private IResource Wood = new Resource("Wood", 0);
+    private IResource Stone = new Resource("Stone", 0);
+    private IResource Food = new Resource("Food", 0);
+
+    private IClicker WoodClicker = new Clicker("WoodClicker", TimeSpan.FromMilliseconds(50), 1);
+    private IClicker StoneClicker = new Clicker("StoneClicker", TimeSpan.FromMilliseconds(50), 1);
+    private IClicker FoodClicker = new Clicker("FoodClicker", TimeSpan.FromMilliseconds(50), 1);
+    private IClicker ForageClicker = new Clicker("ForageClicker", TimeSpan.FromMilliseconds(2000), 10);
+
+    private ICollector WoodCollector = new Collector("WoodCollector", TimeSpan.FromMilliseconds(1000), 0);
+    private ICollector StoneCollector = new Collector("StoneCollector", TimeSpan.FromMilliseconds(1000), 0);
+    private ICollector FoodCollector = new Collector("FoodCollector", TimeSpan.FromMilliseconds(1000), 0);
+
+    protected override async Task OnInitializedAsync()
+    {
+        WoodClicker.ResourceProduced += ResourceProduced;
+        WoodClicker.Clicked += DisableButton;
+        WoodClicker.OffCooldown += EnableButton;
+
+        StoneClicker.ResourceProduced += ResourceProduced;
+        StoneClicker.Clicked += DisableButton;
+        StoneClicker.OffCooldown += EnableButton;
+
+        FoodClicker.ResourceProduced += ResourceProduced;
+        FoodClicker.Clicked += DisableButton;
+        FoodClicker.OffCooldown += EnableButton;
+
+        ForageClicker.ResourceProduced += ResourceProduced;
+        ForageClicker.Clicked += DisableButton;
+        ForageClicker.OffCooldown += EnableButton;
+
+        WoodCollector.ResourceProduced += ResourceProduced;
+        StoneCollector.ResourceProduced += ResourceProduced;
+        FoodCollector.ResourceProduced += ResourceProduced;
+    }
+
+    private void UpgradeWoodCollector()
+    {
+        var cost = WoodCollector.ProductionQuantity * 10;
+        if (Wood.Quantity > cost)
+        {
+            WoodCollector.Upgrade();
+            Wood.Add(-1 * cost);
+        }
+    }
+
+    private void UpgradeStoneCollector()
+    {
+        var cost = StoneCollector.ProductionQuantity * 10;
+        if (Stone.Quantity > cost)
+        {
+            StoneCollector.Upgrade();
+            Stone.Add(-1 * cost);
+        }
+    }
+
+    private void UpgradeFoodCollector()
+    {
+        var cost = FoodCollector.ProductionQuantity * 10;
+        if (Food.Quantity > cost)
+        {
+            FoodCollector.Upgrade();
+            Food.Add(-1 * cost);
+        }
+    }
+
+    private IResource? LastResource = null;
+    private void ResourceProduced(object? sender, ResourceEventArgs e)
+    {
+        if (sender == WoodClicker || sender == WoodCollector)
+        {
+            Wood.Add(e.ProducedQuantity);
+            LastResource = Wood;
+        }
+
+        if (sender == StoneClicker || sender == StoneCollector)
+        {
+            Stone.Add(e.ProducedQuantity);
+            LastResource = Stone;
+        }
+
+        if (sender == FoodClicker || sender == FoodCollector)
+        {
+            Food.Add(e.ProducedQuantity);
+            LastResource = Food;
+        }
+
+        if (sender == ForageClicker)
+        {
+            LastResource?.Add(e.ProducedQuantity);
+        }
+
+        StateHasChanged();
+    }
+
+    private void EnableButton(object? sender, EventArgs e)
+    {
+        if (sender == WoodClicker)
+        {
+            WoodButtonDisabled = false;
+        }
+
+        if (sender == StoneClicker)
+        {
+            StoneButtonDisabled = false;
+        }
+
+        if (sender == FoodClicker)
+        {
+            FoodButtonDisabled = false;
+        }
+
+        if (sender == ForageClicker)
+        {
+            ForageButtonDisabled = false;
+        }
+
+        StateHasChanged();
+    }
+
+    private void DisableButton(object? sender, EventArgs e)
+    {
+        if (sender == WoodClicker)
+        {
+            WoodButtonDisabled = true;
+        }
+
+        if (sender == StoneClicker)
+        {
+            StoneButtonDisabled = true;
+        }
+
+        if (sender == FoodClicker)
+        {
+            FoodButtonDisabled = true;
+        }
+
+        if (sender == ForageClicker)
+        {
+            ForageButtonDisabled = true;
+        }
+
+        StateHasChanged();
+    }
+}
