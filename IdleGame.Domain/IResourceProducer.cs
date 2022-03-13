@@ -24,5 +24,6 @@ namespace IdleGame.Domain
         bool CanAffordMultiplierUpgrade();
         void UpgradeMultiplier(float multiplierAmountToAdd);
         int GetMultiplierUpgradeCost();
+        void SetMultiplier(float newMultiplier);
     }
 }

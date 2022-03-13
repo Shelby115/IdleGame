@@ -1,0 +1,30 @@
+﻿@using IdleGame.Domain
+
+<button class="btn btn-primary" @onclick="@(PurchaseTechnology)" disabled="@(IsDisabled)">@(Technology.HasBeenPurchased ? "Purchased" : Technology.Name)</button> @(Technology.Description)
+
+@code {
+    [Parameter]
+    public Game Game { get; set; }
+
+    [Parameter]
+    public ITechnology Technology { get; set; }
+
+    private bool IsDisabled = false;
+    private Timer StateHasChangedTimer;
+    protected override Task OnInitializedAsync()
+    {
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(100));
+        return base.OnInitializedAsync();
+    }
+
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        IsDisabled = Technology.CanAfford(Game.Resources) == false;
+        StateHasChanged();
+    }
+
+    public void PurchaseTechnology()
+    {
+        Technology.Purchase(Game.Resources, Game.Producers);
+    }
+}

@@ -1,6 +1,6 @@
 ﻿@using IdleGame.Domain
 
-<button class="btn btn-primary" @onclick="@(OnClick)" disabled="@IsDisabled">Collect @(Clicker.ResourceName) +@(Clicker.Quantity)</button>
+<button class="btn btn-primary" @onclick="@(OnClick)" disabled="@IsDisabled">Collect @(Clicker.ResourceName) +@(Clicker.GetProductionQuantity())</button>
 
 @code {
     [Parameter]

@@ -38,6 +38,12 @@
         <MultiplierUpgradeButton Producer="@Game.Producers.Get("FoodCollector")" />
     </div>
 
+    <h4>Technologies</h4>
+    <p>Technologies are upgrades that may apply to one or more clickers or collectors.</p>
+    <div>
+        <TechnologyUpgrade Game="@Game" Technology="@Game.GetTechnology("Basic Education")" /> 
+    </div>
+
     <h4>Game Settings</h4>
     <p>An autosave occurs every 30 seconds.</p>
     <button id="Save" class="btn btn-primary" onclick=@(async () => await SaveGameAsync())>Save</button>

@@ -4,6 +4,7 @@ public class Game
 {
     public Resources Resources { get; private set; }
     public ResourceProducers Producers { get; private set; }
+    public ICollection<ITechnology> Technologies { get; private set; }
 
     public bool IsDoneLoading = false;
 
@@ -28,6 +29,18 @@ public class Game
 
         Producers.Get("WoodCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
         Producers.Get("StoneCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
+
+        Technologies = new List<ITechnology>();
+
+        var basicEducationDesc = "+200% efficiency to all clickers and collectors, Wood: -10000, Stone: -10000, Food: -10000";
+        var basicEducationCosts = new Dictionary<string, long>()
+        {
+            { "Wood", 10000 },
+            { "Stone", 10000 },
+            { "Food", 10000 }
+        };
+        Technologies.Add(new Technology("Basic Education", basicEducationDesc, false, basicEducationCosts, (IResourceProducer x) => x.Quantity > 0, (IResourceProducer x) => x.SetMultiplier(x.Multiplier + 2.0f)));
+
 
         IsDoneLoading = true;
     }
@@ -66,6 +79,18 @@ public class Game
         Producers.Get("WoodCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
         Producers.Get("StoneCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
 
+        Technologies = new List<ITechnology>();
+
+        var basicEducationDesc = "+200% efficiency to all clickers and collectors, Wood: -10000, Stone: -10000, Food: -10000";
+        var basicEducationCosts = new Dictionary<string, long>()
+        {
+            { "Wood", 10000 },
+            { "Stone", 10000 },
+            { "Food", 10000 }
+        };
+        var basicEducationPurchaseStatus = savedGame.GetTechnologyPurchasedStatus("Basic Education");
+        Technologies.Add(new Technology("Basic Education", basicEducationDesc, basicEducationPurchaseStatus, basicEducationCosts, (IResourceProducer x) => x.Quantity > 0, (IResourceProducer x) => x.SetMultiplier(x.Multiplier + 2.0f)));
+
         IsDoneLoading = true;
     }
 
@@ -91,16 +116,28 @@ public class Game
             });
         }
 
+        var technologies = new Dictionary<string, bool>();
+        foreach (var technology in Technologies)
+        {
+            technologies.Add(technology.Name, technology.HasBeenPurchased);
+        }
+
         return new SavedGame()
         {
             Resources = resources,
-            ResourceProducers = resourceProducers
+            ResourceProducers = resourceProducers,
+            Technologies = technologies
         };
+    }
+
+    public ITechnology? GetTechnology(string technologyName)
+    {
+        return Technologies.FirstOrDefault(x => x.Name == technologyName);
     }
 
     public const int DefaultWoodQuantity = 10000;
     public const int DefaultStoneQuantity = 10000;
-    public const int DefaultFoodQuantity = 2500;
+    public const int DefaultFoodQuantity = 25000;
     public const int ClickerPrimaryResourceMultiplier = 10;
     public const int ClickerSecondaryResourceMultiplier = 5;
     public const int CollectorPrimaryResourceMultiplier = 25;

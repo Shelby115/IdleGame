@@ -140,7 +140,7 @@ public class ResourceProducer : IResourceProducer
 
     public int GetProductionQuantity()
     {
-        return (int)(Quantity * Multiplier);
+        return (int)Math.Round(Quantity * Multiplier, 0);
     }
 
     /// <summary>
@@ -171,5 +171,10 @@ public class ResourceProducer : IResourceProducer
             Quantity -= GetMultiplierUpgradeCost();
             Multiplier += multiplierAmountToAdd;
         }
+    }
+
+    public void SetMultiplier(float newMultiplier)
+    {
+        Multiplier = newMultiplier;
     }
 }
