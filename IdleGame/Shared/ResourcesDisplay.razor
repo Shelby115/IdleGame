@@ -1,0 +1,47 @@
+﻿@using IdleGame.Domain
+
+<div class="resources">
+    @foreach (var resource in Resources)
+    {
+        <div class="resource">
+            @(resource.Name): @(resource.Quantity)
+            <span style="color: red;">@(displayConsumption(resource.Name) ? $"({GetConsumption(resource.Name)})/s" : "")</span>
+            <span style="color: green;">@(displayProduction(resource.Name) ? $"(+{GetProduction(resource.Name)})/s" : "")</span>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Resources Resources { get; set; }
+
+    [Parameter]
+    public Func<string, int> GetConsumption { get; set; }
+
+    [Parameter]
+    public Func<string, int> GetProduction { get; set; }    
+    
+    [Parameter]
+    public TimeSpan? RefreshRate { get; set; }
+
+    private Timer StateHasChangedTimer;
+    protected override Task OnInitializedAsync()
+    {
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, RefreshRate ?? TimeSpan.FromMilliseconds(100));
+        return base.OnInitializedAsync();
+    }
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        StateHasChanged();
+    }
+
+    private bool displayConsumption(string resourceName)
+    {
+        return GetConsumption(resourceName) != 0;
+    }
+
+    private bool displayProduction(string resourceName)
+    {
+        return GetProduction(resourceName) != 0;
+    }
+}

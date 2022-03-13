@@ -1,28 +1,19 @@
 ﻿namespace IdleGame.Domain;
 
-public class Collector : ICollector, IResourceProducer
+public class Collector : ResourceProducer
 {
-    public string Name { get; }
-    public TimeSpan Interval { get; }
-    private Timer Timer { get; }
-    public int ProductionQuantity { get; private set; }
+    public override bool IsAutomatic => true;
 
-    public event EventHandler<ResourceEventArgs>? ResourceProduced;
-
-    public Collector(string name, TimeSpan interval, int productionQuantity)
+    public Collector(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts)
+        : base(name, resource, quantity, cooldown, getUpgradeCosts)
     {
-        Name = name?.Trim() ?? throw new ArgumentNullException(nameof(name));
-        Interval = interval;
-        Timer = new Timer(TimerCallback, null, TimeSpan.Zero, interval);
+        StartResourceProduction();
     }
 
-    public void Upgrade()
+    protected override void ProduceResource(object? state)
     {
-        ProductionQuantity += 1;
-    }
-
-    private void TimerCallback(object? state)
-    {
-        ResourceProduced?.Invoke(this, new ResourceEventArgs(ProductionQuantity));
+        base.ProduceResource(state);
+        // Collectors should automatically call StartResourceProduction() when the timer completes.
+        StartResourceProduction();
     }
 }

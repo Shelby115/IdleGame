@@ -1,0 +1,30 @@
+﻿@using IdleGame.Domain
+<div>
+    <button class="btn btn-primary" @onclick="@(() => Producer.UpgradeMultiplier(0.1f))" disabled="@(IsDisabled)">Upgrade @(Producer.ResourceName) @(TypeName) +@((int)((Producer.Multiplier - 1.0f)*100))%</button>
+    +10% for -10 @(TypeName)
+</div>
+
+@code {
+
+    [Parameter]
+    public IResourceProducer Producer { get; set; }
+
+    [Parameter]
+    public TimeSpan? RefreshRate { get; set; }
+
+    private string TypeName;
+    private bool IsDisabled;
+    private Timer StateHasChangedTimer;
+
+    protected override Task OnInitializedAsync()
+    {
+        TypeName = Producer.GetType() == typeof(Clicker) ? "Clicker" : "Collector";
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, RefreshRate ?? TimeSpan.FromMilliseconds(100));
+        return base.OnInitializedAsync();
+    }
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        IsDisabled = Producer.CanAffordMultiplierUpgrade() == false;
+        StateHasChanged();
+    }
+}

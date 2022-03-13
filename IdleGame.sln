@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleGame", "IdleGame\IdleGame.csproj", "{118BF616-84AA-4E52-AE4D-721D2D3002A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdleGame", "IdleGame\IdleGame.csproj", "{118BF616-84AA-4E52-AE4D-721D2D3002A9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{B858E21C-3F08-49AB-88E2-78C51E618DBE}"
 	ProjectSection(SolutionItems) = preProject
 		ReadMe.md = ReadMe.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdleGame.Domain", "IdleGame.Domain\IdleGame.Domain.csproj", "{CA64AF39-0A0C-4347-9095-80408970A4A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdleGame.Domain", "IdleGame.Domain\IdleGame.Domain.csproj", "{CA64AF39-0A0C-4347-9095-80408970A4A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

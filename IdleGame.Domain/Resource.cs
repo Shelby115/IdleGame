@@ -11,7 +11,7 @@ public class Resource : IResource
         Quantity = quantity;
     }
 
-    public void Add(int quantity)
+    public void Add(long quantity)
     {
         Quantity += quantity;
     }

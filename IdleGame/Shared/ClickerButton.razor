@@ -1,0 +1,36 @@
+﻿@using IdleGame.Domain
+
+<button class="btn btn-primary" @onclick="@(OnClick)" disabled="@IsDisabled">Collect @(Clicker.ResourceName) +@(Clicker.Quantity)</button>
+
+@code {
+    [Parameter]
+    public Resources Resources { get; set; }
+
+    [Parameter]
+    public IResourceProducer Clicker { get; set; }
+
+    [Parameter]
+    public TimeSpan? RefreshRate { get; set; }
+
+
+    private bool IsDisabled = false;
+    private Timer StateHasChangedTimer;
+    protected override Task OnInitializedAsync()
+    {
+        Clicker.ResourceProductionStarted += (object? sender, EventArgs e) => IsDisabled = true;
+        Clicker.ResourceProductionFinished += (object? sender, ResourceProducedEventArgs e) => IsDisabled = false;
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, RefreshRate ?? TimeSpan.FromMilliseconds(100));
+        return base.OnInitializedAsync();
+    }
+
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        StateHasChanged();
+    }
+
+    private void OnClick()
+    {
+        Clicker.StartResourceProduction();
+        StateHasChanged();
+    }
+}

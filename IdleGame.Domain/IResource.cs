@@ -5,6 +5,6 @@
         string Name { get; }
         long Quantity { get; }
 
-        void Add(int quantity);
+        void Add(long quantity);
     }
 }
