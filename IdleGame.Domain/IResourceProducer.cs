@@ -5,6 +5,7 @@ namespace IdleGame.Domain
     {
         string Name { get; }
         string ResourceName { get; }
+        int TimesUpgraded { get; }
         int Quantity { get; }
         float Multiplier { get; }
         bool IsAutomatic { get; }
@@ -22,5 +23,6 @@ namespace IdleGame.Domain
         bool Upgrade(Resources resources, int quantity = 1);
         bool CanAffordMultiplierUpgrade();
         void UpgradeMultiplier(float multiplierAmountToAdd);
+        int GetMultiplierUpgradeCost();
     }
 }

@@ -4,8 +4,8 @@ public class Collector : ResourceProducer
 {
     public override bool IsAutomatic => true;
 
-    public Collector(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts)
-        : base(name, resource, quantity, cooldown, getUpgradeCosts)
+    public Collector(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts, float? multiplier = 1.0f, int? timesUpgraded = null)
+        : base(name, resource, quantity, cooldown, getUpgradeCosts, multiplier, timesUpgraded)
     {
         StartResourceProduction();
     }

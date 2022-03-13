@@ -1,35 +1,10 @@
 ﻿@page "/"
 @using IdleGame.Domain
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>Game</PageTitle>
 
-<h1>Idle Game</h1>
-
-<ResourcesDisplay Resources="@Resources" GetConsumption="@Producers.GetConsumption" GetProduction="@Producers.GetProduction" />
-
-<div>
-    <ClickerButton Clicker="@Producers.Get("WoodClicker")" Resources="@Resources" />
-    <ClickerButton Clicker="@Producers.Get("StoneClicker")" Resources="@Resources" />
-    <ClickerButton Clicker="@Producers.Get("FoodClicker")" Resources="@Resources" />
-</div>
-
-<div>
-    <UpgradeDisplay Producer="@Producers.Get("WoodClicker")" Resources="@Resources" />
-    <UpgradeDisplay Producer="@Producers.Get("StoneClicker")" Resources="@Resources" />
-    <UpgradeDisplay Producer="@Producers.Get("FoodClicker")" Resources="@Resources" />
-</div>
-
-<div>
-    <UpgradeDisplay Producer="@Producers.Get("WoodCollector")" Resources="@Resources" />
-    <UpgradeDisplay Producer="@Producers.Get("StoneCollector")" Resources="@Resources" />
-    <UpgradeDisplay Producer="@Producers.Get("FoodCollector")" Resources="@Resources" />
-</div>
-
-<div>
-    <MultiplierUpgradeButton Producer="@Producers.Get("WoodCollector")" />
-    <MultiplierUpgradeButton Producer="@Producers.Get("StoneCollector")" />
-    <MultiplierUpgradeButton Producer="@Producers.Get("FoodCollector")" />
-</div>
+<GameDisplay Game="@Game" />
 
 <style>
     div {
@@ -39,137 +14,34 @@
 </style>
 
 @code {
+    private Game Game = new Game();
 
-    private Resources Resources = new Resources(new List<IResource>()
+    public async Task<SavedGame> LoadOrNewGameAsync()
     {
-        new Resource("Wood", 10000),
-        new Resource("Stone", 10000),
-        new Resource("Food", 2500)
-    });
-
-    private ResourceProducers Producers = new ResourceProducers();
-
-    private Timer StateHasChangedTimer;
-    protected override Task OnInitializedAsync()
-    {
-        Producers.Add(new Clicker("WoodClicker", Resources.Get("Wood"), 1, TimeSpan.Zero, CalculateClickerUpgradeCost));
-        Producers.Add(new Clicker("StoneClicker", Resources.Get("Stone"), 1, TimeSpan.Zero, CalculateClickerUpgradeCost));
-        Producers.Add(new Clicker("FoodClicker", Resources.Get("Food"), 1, TimeSpan.Zero, CalculateClickerUpgradeCost));
-
-        Producers.Add(new Collector("WoodCollector", Resources.Get("Wood"), 0, TimeSpan.FromSeconds(1), CalculateCollectorUpgradeCost));
-        Producers.Add(new Collector("StoneCollector", Resources.Get("Stone"), 0, TimeSpan.FromSeconds(1), CalculateCollectorUpgradeCost));
-        Producers.Add(new Collector("FoodCollector", Resources.Get("Food"), 0, TimeSpan.FromSeconds(1), CalculateCollectorUpgradeCost));
-
-        Producers.Add(new Collector("FoodConsumer", Resources.Get("Food"), -1, TimeSpan.FromSeconds(1), CalculateClickerUpgradeCost));
-        Producers.Get("FoodConsumer").ResourceProductionFinished += ApplyPenaltyToOtherResourcesIfFoodIsNegative;
-
-        Producers.Get("WoodCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
-        Producers.Get("StoneCollector").Upgraded += IncreaseFoodConsumptionOnCollectorUpgrade;
-
-
-        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-
-        return base.OnInitializedAsync();
-    }
-
-    private void StateHasChangedTimerCallback(object? state)
-    {
-        StateHasChanged();
-    }
-
-    private void ApplyPenaltyToOtherResourcesIfFoodIsNegative(object? sender, ResourceProducedEventArgs e)
-    {
-        var producedResource = Resources.Get(e.ResourceName);
-        var quantity = producedResource.Quantity;
-        if (quantity < 0)
+        var savedGame = await localStorage.GetItemAsync<SavedGame>("Game");
+        if (savedGame != null)
         {
-            foreach (var resource in Resources)
-            {
-                if (resource.Name == producedResource.Name)
-                {
-                    resource.Add(-1 * quantity);
-                }
-                else
-                {
-                    var penaltyQuantity = 2 * quantity;
-                    resource.Add(penaltyQuantity);
-                }
-            }
+            Game.LoadGame(savedGame);
         }
-    }
-
-    private void IncreaseFoodConsumptionOnCollectorUpgrade(object? sender, EventArgs e)
-    {
-        var producer = sender as IResourceProducer;
-        if (producer == null) { return; }
-
-        if (producer.IsAutomatic && producer.ResourceName != "Food")
+        else
         {
-            Producers.Get("FoodConsumer").Upgrade(Resources, -1);
-        }
-    }
-
-    private IDictionary<string, int> CalculateClickerUpgradeCost(IResourceProducer x)
-    {
-        if (x.Name == "WoodClicker")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 5 * x.Quantity },
-                { "Stone", 10 * x.Quantity }
-            };
-        }
-        else if (x.Name == "StoneClicker")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 10 * x.Quantity },
-                { "Stone", 5 * x.Quantity }
-            };
-        }
-        else if (x.Name == "FoodClicker")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 15 * x.Quantity },
-                { "Stone", 15 * x.Quantity }
-            }; 
-        }
-
-        return new Dictionary<string, int>()
-        {
-            { "Wood", 0 },
-            { "Stone", 0 }
-        };
-    }
-
-    private IDictionary<string, int> CalculateCollectorUpgradeCost(IResourceProducer x)
-    {
-        if (x.Name == "WoodCollector")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 10 * x.Quantity + 25 },
-                { "Stone", 25 * x.Quantity + 25 }
-            };
-        }
-        else if (x.Name == "StoneCollector")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 25 * x.Quantity + 25 },
-                { "Stone", 10 * x.Quantity + 25 }
-            };
-        }
-        else if (x.Name == "FoodCollector")
-        {
-            return new Dictionary<string, int>()
-            {
-                { "Wood", 10 * x.Quantity + 50 },
-                { "Stone", 10 * x.Quantity + 50 }
-            }; 
+            Game.NewGame();
         }
 
         return null;
+    }
+
+    protected override async Task<SavedGame> OnInitializedAsync()
+    {
+        await LoadOrNewGameAsync();
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        base.OnInitialized();
+        return null;
+    }
+
+    private Timer StateHasChangedTimer;
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        StateHasChanged();
     }
 }

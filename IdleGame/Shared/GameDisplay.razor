@@ -1,0 +1,73 @@
+﻿@using IdleGame.Domain
+@using System.Linq
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<h1>Idle Game</h1>
+
+@if (Game.IsDoneLoading)
+{
+    <ResourcesDisplay Resources="@Game.Resources" GetConsumption="@Game.Producers.GetConsumption" GetProduction="@Game.Producers.GetProduction" />
+
+    <div>
+        <ClickerButton Clicker="@Game.Producers.Get("WoodClicker")" Resources="@Game.Resources" />
+        <ClickerButton Clicker="@Game.Producers.Get("StoneClicker")" Resources="@Game.Resources" />
+        <ClickerButton Clicker="@Game.Producers.Get("FoodClicker")" Resources="@Game.Resources" />
+    </div>
+
+    <h4>Clicker Upgrades</h4>
+    <p>Increases the amount of resources received per click.</p>
+    <div>
+        <UpgradeDisplay Producer="@Game.Producers.Get("WoodClicker")" Resources="@Game.Resources" />
+        <UpgradeDisplay Producer="@Game.Producers.Get("StoneClicker")" Resources="@Game.Resources" />
+        <UpgradeDisplay Producer="@Game.Producers.Get("FoodClicker")" Resources="@Game.Resources" />
+    </div>
+
+    <h4>Purchase Collectors</h4>
+    <p>Collectors will collect 1 resource per second automatically. Each non-food collector consumes 1 food per second.</p>
+    <div>
+        <UpgradeDisplay Producer="@Game.Producers.Get("WoodCollector")" Resources="@Game.Resources" />
+        <UpgradeDisplay Producer="@Game.Producers.Get("StoneCollector")" Resources="@Game.Resources" />
+        <UpgradeDisplay Producer="@Game.Producers.Get("FoodCollector")" Resources="@Game.Resources" />
+    </div>
+
+    <h4>Upgrade Collectors</h4>
+    <p>Purchase upgrades that increase the efficiency of each collector.</p>
+    <div>
+        <MultiplierUpgradeButton Producer="@Game.Producers.Get("WoodCollector")" />
+        <MultiplierUpgradeButton Producer="@Game.Producers.Get("StoneCollector")" />
+        <MultiplierUpgradeButton Producer="@Game.Producers.Get("FoodCollector")" />
+    </div>
+
+    <h4>Game Settings</h4>
+    <p>An autosave occurs every 30 seconds.</p>
+    <button id="Save" class="btn btn-primary" onclick=@(async () => await SaveGameAsync())>Save</button>
+    <button id="NewGame" class="btn btn-danger" onclick="@(NewGame)">New Game</button>
+}
+
+@code {
+    [Parameter]
+    public Game Game { get; set; }
+
+    public async Task SaveGameAsync()
+    {
+        await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame());
+        Console.WriteLine("Game saved.");
+    }
+
+    public void NewGame()
+    {
+        Game.NewGame();
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        AutosaveTimer = new Timer(AutoSaveTimerCallback, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        return base.OnInitializedAsync();
+    }
+    private Timer AutosaveTimer;
+    private void AutoSaveTimerCallback(object? state)
+    {
+        Console.WriteLine("Autosaving...");
+        Task.Run(async () => await SaveGameAsync());
+    }
+}

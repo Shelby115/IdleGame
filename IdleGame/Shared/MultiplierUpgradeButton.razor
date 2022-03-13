@@ -1,7 +1,7 @@
 ﻿@using IdleGame.Domain
 <div>
     <button class="btn btn-primary" @onclick="@(() => Producer.UpgradeMultiplier(0.1f))" disabled="@(IsDisabled)">Upgrade @(Producer.ResourceName) @(TypeName) +@((int)((Producer.Multiplier - 1.0f)*100))%</button>
-    +10% for -10 @(TypeName)
+    +10% for -@(Producer.GetMultiplierUpgradeCost()) @(TypeName)
 </div>
 
 @code {

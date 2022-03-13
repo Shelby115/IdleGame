@@ -11,6 +11,11 @@ public class ResourceProducer : IResourceProducer
     public virtual bool IsAutomatic => false;
 
     /// <summary>
+    /// The number of times this resource producer has been upgraded.
+    /// </summary>
+    public int TimesUpgraded { get; private set; }
+
+    /// <summary>
     /// The amount of a resource to be produced.
     /// </summary>
     public int Quantity { get; private set; }
@@ -28,7 +33,7 @@ public class ResourceProducer : IResourceProducer
     protected DateTime LastProducedOn;
     public Func<IResourceProducer, IDictionary<string, int>> GetUpgradeCosts { get; }
 
-    private const int MultiplierQuantityCost = 10;
+    private const int MultiplierQuantityCost = 1;
     public float Multiplier { get; private set; }
 
     protected readonly Timer Timer;
@@ -48,12 +53,13 @@ public class ResourceProducer : IResourceProducer
     /// </summary>
     public event EventHandler? Upgraded;
 
-    internal ResourceProducer(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts)
+    internal ResourceProducer(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts, float? multiplier = null, int? timesUpgraded = null)
     {
         Name = name?.Trim() ?? throw new ArgumentNullException(nameof(name));
         Resource = resource;
         Quantity = quantity;
-        Multiplier = 1.0f;
+        TimesUpgraded = timesUpgraded ?? 0;
+        Multiplier = multiplier ?? 1.0f;
         Cooldown = cooldown;
         LastProducedOn = DateTime.MinValue;
         GetUpgradeCosts = getUpgradeCosts;
@@ -76,6 +82,7 @@ public class ResourceProducer : IResourceProducer
         }
 
         Quantity += quantity;
+        TimesUpgraded += 1;
         Upgraded?.Invoke(this, EventArgs.Empty);
 
         return true;
@@ -147,16 +154,21 @@ public class ResourceProducer : IResourceProducer
         ResourceProductionFinished?.Invoke(this, new ResourceProducedEventArgs(Resource.Name, quantity));
     }
 
+    public int GetMultiplierUpgradeCost()
+    {
+        return (int)Multiplier * MultiplierQuantityCost;
+    }
+
     public bool CanAffordMultiplierUpgrade()
     {
-        return Quantity > MultiplierQuantityCost;
+        return Quantity > GetMultiplierUpgradeCost();
     }
 
     public void UpgradeMultiplier(float multiplierAmountToAdd)
     {
         if (CanAffordMultiplierUpgrade())
         {
-            Quantity -= MultiplierQuantityCost;
+            Quantity -= GetMultiplierUpgradeCost();
             Multiplier += multiplierAmountToAdd;
         }
     }
