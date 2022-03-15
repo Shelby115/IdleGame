@@ -16,12 +16,30 @@ public class ResourceProducers : IEnumerable<IResourceProducer>
         foreach (var producer in resourceProducers)
         {
             Add(producer);
+            if (producer.IsAutomatic && producer.CauseOtherAutomaticProducersToUpgradeOnUpgrade)
+            {
+                producer.Upgraded += UpgradeOtherAutomaticProducersOnUpgrade;
+            }
         }
     }
 
-    public IResourceProducer Get(string name)
+    private void UpgradeOtherAutomaticProducersOnUpgrade(object? sender, EventArgs e)
     {
-        return _Producers[name];
+        if (sender is not IResourceProducer upgradedProducer) { return; }
+
+        foreach (var producer in _Producers.Values)
+        {
+            if (producer.Name == upgradedProducer.Name) { continue; }
+            if (producer.UpgradeWhenOtherAutomaticProducersUpgrade == false) { continue; }
+            producer.UpgradeForFree();
+        }
+    }
+
+    public IResourceProducer? Get(string name)
+    {
+        return _Producers.TryGetValue(name, out var producer)
+             ? producer
+             : null;
     }
 
     public int GetProduction(string resourceName)

@@ -41,39 +41,11 @@
     <h4>Technologies</h4>
     <p>Technologies are upgrades that may apply to one or more clickers or collectors.</p>
     <div>
-        <TechnologyUpgrade Game="@Game" Technology="@Game.GetTechnology("Basic Education")" /> 
+        <TechnologyUpgrade Game="@Game" Technology="@Game.Technologies.Get("Basic Education")" /> 
     </div>
-
-    <h4>Game Settings</h4>
-    <p>An autosave occurs every 30 seconds.</p>
-    <button id="Save" class="btn btn-primary" onclick=@(async () => await SaveGameAsync())>Save</button>
-    <button id="NewGame" class="btn btn-danger" onclick="@(NewGame)">New Game</button>
 }
 
 @code {
     [Parameter]
     public Game Game { get; set; }
-
-    public async Task SaveGameAsync()
-    {
-        await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame());
-        Console.WriteLine("Game saved.");
-    }
-
-    public void NewGame()
-    {
-        Game.NewGame();
-    }
-
-    protected override Task OnInitializedAsync()
-    {
-        AutosaveTimer = new Timer(AutoSaveTimerCallback, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
-        return base.OnInitializedAsync();
-    }
-    private Timer AutosaveTimer;
-    private void AutoSaveTimerCallback(object? state)
-    {
-        Console.WriteLine("Autosaving...");
-        Task.Run(async () => await SaveGameAsync());
-    }
 }

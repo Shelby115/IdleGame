@@ -1,0 +1,193 @@
+{
+  "Resources": [
+    {
+      "Name": "Wood",
+      "Quantity": 10000,
+      "NegativePenaltyRateForOtherResources": 0
+    },
+    {
+      "Name": "Stone",
+      "Quantity": 10000,
+      "NegativePenaltyRateForOtherResources": 0
+    },
+    {
+      "Name": "Food",
+      "Quantity": 2500,
+      "NegativePenaltyRateForOtherResources": 2
+    }
+  ],
+  "Producers": [
+    {
+      "Name": "WoodClicker",
+      "ResourceName": "Wood",
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 0,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 0
+        },
+        {
+          "Stone": 0
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 5
+        },
+        {
+          "Stone": 10
+        }
+      ]
+    },
+    {
+      "Name": "StoneClicker",
+      "ResourceName": "Stone",
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 0,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 0
+        },
+        {
+          "Stone": 0
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 10
+        },
+        {
+          "Stone": 5
+        }
+      ]
+    },
+    {
+      "Name": "FoodClicker",
+      "ResourceName": "Food",
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 0,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 0
+        },
+        {
+          "Stone": 0
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 10
+        },
+        {
+          "Stone": 10
+        }
+      ]
+    },
+    {
+      "Name": "WoodCollector",
+      "ResourceName": "Wood",
+      "IsAutomatic": true,
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 1000,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 25
+        },
+        {
+          "Stone": 25
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 10
+        },
+        {
+          "Stone": 25
+        }
+      ]
+    },
+    {
+      "Name": "StoneCollector",
+      "ResourceName": "Stone",
+      "IsAutomatic": true,
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 1000,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 25
+        },
+        {
+          "Stone": 25
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 25
+        },
+        {
+          "Stone": 10
+        }
+      ]
+    },
+    {
+      "Name": "FoodCollector",
+      "ResourceName": "Food",
+      "IsAutomatic": true,
+      "Quantity": 1,
+      "UpgradeQuantity": 1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": false,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 1000,
+      "BaseResourceUpgradeCost": [
+        {
+          "Wood": 25
+        },
+        {
+          "Stone": 25
+        }
+      ],
+      "ScaleResourceUpgradeCost": [
+        {
+          "Wood": 10
+        },
+        {
+          "Stone": 10
+        }
+      ]
+    },
+    {
+      "Name": "FoodConsumer",
+      "ResourceName": "Food",
+      "IsAutomatic": true,
+      "Quantity": -1,
+      "UpgradeQuantity": -1,
+      "UpgradeWhenOtherAutomaticProducersUpgrade": true,
+      "Multiplier": 1.0,
+      "TimesUpgraded": 0,
+      "Cooldown": 1000,
+      "BaseResourceUpgradeCost": [],
+      "ScaleResourceUpgradeCost": []
+    }
+  ]
+}

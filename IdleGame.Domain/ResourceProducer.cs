@@ -6,122 +6,53 @@ public class ResourceProducer : IResourceProducer
     /// Name of this resource producer.
     /// </summary>
     public string Name { get; }
-
-    public string ResourceName => Resource.Name;
     public virtual bool IsAutomatic => false;
 
-    /// <summary>
-    /// The number of times this resource producer has been upgraded.
-    /// </summary>
-    public int TimesUpgraded { get; private set; }
-
-    /// <summary>
-    /// The amount of a resource to be produced.
-    /// </summary>
-    public int Quantity { get; private set; }
-
-    /// <summary>
-    /// The resource that is produced by this resource producer.
-    /// </summary>
+    public string ResourceName => Resource.Name;
     protected readonly IResource Resource;
+    public int Quantity { get; set; }
 
-    /// <summary>
-    /// The time inteval between productions of the resource.
-    /// </summary>
     public readonly TimeSpan Cooldown;
-
     protected DateTime LastProducedOn;
-    public Func<IResourceProducer, IDictionary<string, int>> GetUpgradeCosts { get; }
+    protected readonly Timer Timer;
+
+    public int QuantityAddedOnUpgrade { get; set; }
+    public bool CauseOtherAutomaticProducersToUpgradeOnUpgrade { get; set; }
+    public bool UpgradeWhenOtherAutomaticProducersUpgrade { get; set; }
+    public int TimesUpgraded { get; set; }
+    public IDictionary<string, (int baseCost, int costMultiplier)> ResourceUpgradeCosts { get; set; }
 
     private const int MultiplierQuantityCost = 1;
     public float Multiplier { get; private set; }
 
-    protected readonly Timer Timer;
-
-    /// <summary>
-    /// Fires when the resource producer starts its cooldown interval.
-    /// </summary>
     public event EventHandler? ResourceProductionStarted;
-
-    /// <summary>
-    /// Fires when the resource producer finishes its cooldown interval and produces resources.
-    /// </summary>
     public event EventHandler<ResourceProducedEventArgs>? ResourceProductionFinished;
-
-    /// <summary>
-    /// Fires when the resource producer is upgraded.
-    /// </summary>
     public event EventHandler? Upgraded;
 
-    internal ResourceProducer(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts, float? multiplier = null, int? timesUpgraded = null)
+    internal ResourceProducer(string name, IResource resource, int quantity, TimeSpan cooldown)
     {
         Name = name?.Trim() ?? throw new ArgumentNullException(nameof(name));
         Resource = resource;
         Quantity = quantity;
-        TimesUpgraded = timesUpgraded ?? 0;
-        Multiplier = multiplier ?? 1.0f;
+
         Cooldown = cooldown;
         LastProducedOn = DateTime.MinValue;
-        GetUpgradeCosts = getUpgradeCosts;
         Timer = new Timer(ProduceResource, null, Timeout.InfiniteTimeSpan, Cooldown);
+
+        QuantityAddedOnUpgrade = 1;
+        UpgradeWhenOtherAutomaticProducersUpgrade = false;
+        TimesUpgraded = 0;
+        ResourceUpgradeCosts = new Dictionary<string, (int baseCost, int costMultiplier)>();
+
+        Multiplier = 1.0f;
     }
 
     /// <summary>
-    /// Upgrades the resource producer if it can be afforded.
+    /// Calculates the quantity of resource to be produced per cooldown.
     /// </summary>
-    /// <returns>True = The upgrade was purchased. False = The upgrade was not purchased.</returns>
-    public bool Upgrade(Resources resources, int quantity = 1)
+    public int GetProductionQuantity()
     {
-        var costs = GetUpgradeCosts(this);
-        var canAffordUpgradeCosts = CanAffordUpgradeCosts(resources, costs);
-        if (canAffordUpgradeCosts == false) { return false; }
-
-        foreach (var cost in costs)
-        {
-            resources.Get(cost.Key).Add(-1 * cost.Value);
-        }
-
-        Quantity += quantity;
-        TimesUpgraded += 1;
-        Upgraded?.Invoke(this, EventArgs.Empty);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Checks if the upgradeCosts can be afforded with the provided resources.
-    /// </summary>
-    /// <param name="resources">Resources available to spend on upgrade.</param>
-    /// <param name="upgradeCosts">The quantity (value) cost of each upgrade by name (key).</param>
-    /// <returns>True = Can afford the upgrade cost. False = Cannot afford the upgrade costs.</returns>
-    public bool CanAffordUpgradeCosts(Resources resources, IDictionary<string, int> upgradeCosts)
-    {
-        foreach (var cost in upgradeCosts)
-        {
-            var resource = resources.Get(cost.Key);
-            if (resource == null) { return false; }
-            if (resource.Quantity < cost.Value) { return false; }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Checks if the upgradeCosts can be afforded with the provided resources.
-    /// </summary>
-    /// <param name="resources">Resources available to spend on upgrade.</param>
-    /// <returns>True = Can afford the upgrade cost. False = Cannot afford the upgrade costs.</returns>
-    public bool CanAffordUpgradeCosts(Resources resources)
-    {
-        var upgradeCosts = GetUpgradeCosts(this);
-        foreach (var cost in upgradeCosts)
-        {
-            var resource = resources.Get(cost.Key);
-            if (resource == null) { return false; }
-            if (resource.Quantity < cost.Value) { return false; }
-        }
-
-        return true;
+        return (int)Math.Round(Quantity * Multiplier, 0);
     }
 
     /// <summary>
@@ -138,11 +69,6 @@ public class ResourceProducer : IResourceProducer
         }
     }
 
-    public int GetProductionQuantity()
-    {
-        return (int)Math.Round(Quantity * Multiplier, 0);
-    }
-
     /// <summary>
     /// Produces resources at the end of the resource production cooldown timer.
     /// </summary>
@@ -154,16 +80,87 @@ public class ResourceProducer : IResourceProducer
         ResourceProductionFinished?.Invoke(this, new ResourceProducedEventArgs(Resource.Name, quantity));
     }
 
+
+    /// <summary>
+    /// Retrieves the cost per relevant resource to upgrade this resource producer.
+    /// </summary>
+    public IDictionary<string, int> GetUpgradeCosts()
+    {
+        return ResourceUpgradeCosts.ToDictionary(
+            keySelector: x => x.Key,
+            elementSelector: x => x.Value.baseCost + x.Value.costMultiplier * TimesUpgraded
+        );
+    }
+
+    /// <summary>
+    /// Checks if the upgradeCosts can be afforded with the provided resources.
+    /// </summary>
+    /// <param name="resources">Resources available to spend on upgrade.</param>
+    /// <returns>True = Can afford the upgrade cost. False = Cannot afford the upgrade costs.</returns>
+    public bool CanAffordUpgradeCosts(Resources resources)
+    {
+        var upgradeCosts = GetUpgradeCosts();
+        foreach (var cost in upgradeCosts)
+        {
+            var resource = resources.Get(cost.Key);
+            if (resource == null) { return false; }
+            if (resource.Quantity < cost.Value) { return false; }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Upgrades the resource producer if it can be afforded.
+    /// </summary>
+    /// <returns>True = The upgrade was purchased. False = The upgrade was not purchased.</returns>
+    public bool Upgrade(Resources resources)
+    {
+        var costs = GetUpgradeCosts();
+        var canAffordUpgradeCosts = CanAffordUpgradeCosts(resources);
+        if (canAffordUpgradeCosts == false) { return false; }
+
+        foreach (var cost in costs)
+        {
+            resources.Get(cost.Key).Add(-1 * cost.Value);
+        }
+
+        Quantity += QuantityAddedOnUpgrade;
+        TimesUpgraded += 1;
+        Upgraded?.Invoke(this, EventArgs.Empty);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Upgrades the resource producer without cost. Increments the <see cref="TimesUpgraded"/> counter, but does not fire the <see cref="Upgraded"/> event.
+    /// </summary>
+    public void UpgradeForFree()
+    {
+        Quantity += QuantityAddedOnUpgrade;
+        TimesUpgraded += 1;
+    }
+
+
+    /// <summary>
+    /// Calculates the cost for a multiplier upgrade.
+    /// </summary>
     public int GetMultiplierUpgradeCost()
     {
         return (int)Multiplier * MultiplierQuantityCost;
     }
 
+    /// <summary>
+    /// Checks if an upgrade to the resource proceduer's multiplier can be afforded.
+    /// </summary>
     public bool CanAffordMultiplierUpgrade()
     {
         return Quantity > GetMultiplierUpgradeCost();
     }
 
+    /// <summary>
+    /// Upgrades the resource producer's multiplier by the specified amount.
+    /// </summary>
     public void UpgradeMultiplier(float multiplierAmountToAdd)
     {
         if (CanAffordMultiplierUpgrade())
@@ -173,8 +170,26 @@ public class ResourceProducer : IResourceProducer
         }
     }
 
-    public void SetMultiplier(float newMultiplier)
+    /// <summary>
+    /// Upgrades the resource producer's multiplier by the specified amount without a cost.
+    /// </summary>
+    public void UpgradeMultiplierForFree(float multiplierAmountToAdd)
     {
-        Multiplier = newMultiplier;
+        Multiplier += multiplierAmountToAdd;
+    }
+
+    /// <summary>
+    /// Sets the values based on the saved resource producer.
+    /// </summary>
+    public virtual void LoadValues(SavedResourceProducer savedProducer)
+    {
+        this.Quantity = savedProducer.Quantity;
+        this.TimesUpgraded = savedProducer.TimesUpgraded;
+        this.Multiplier = savedProducer.Multiplier;
+    }
+
+    public override string ToString()
+    {
+        return this.Name;
     }
 }

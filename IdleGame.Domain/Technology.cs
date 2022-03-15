@@ -5,19 +5,9 @@ public class Technology : ITechnology
     public string Name { get; set; }
     public string Description { get; set; }
     public bool HasBeenPurchased { get; set; }
-    private IDictionary<string, long> ResourceCosts { get; set; }
-    private Func<IResourceProducer, bool> IsAffectedResourceProducer { get; set; }
-    private Action<IResourceProducer> ApplyTechnologyToResourceProducer { get; set; }
-
-    public Technology(string name, string description, bool hasBeenPurchased, IDictionary<string, long> resourceCosts, Func<IResourceProducer, bool> isAffectedResourceProducer, Action<IResourceProducer> applyTechnologyToResourceProducer)
-    {
-        Name = name;
-        Description = description;
-        HasBeenPurchased = hasBeenPurchased;
-        ResourceCosts = resourceCosts;
-        IsAffectedResourceProducer = isAffectedResourceProducer;
-        ApplyTechnologyToResourceProducer = applyTechnologyToResourceProducer;
-    }
+    public IDictionary<string, long> ResourceCosts { get; set; }
+    public Func<IResourceProducer, bool> GetAffectedResourceProducer { get; set; }
+    public Action<IResourceProducer> ApplyTechnologyToResourceProducer { get; set; }
 
     public bool CanAfford(Resources resources)
     {
@@ -44,7 +34,7 @@ public class Technology : ITechnology
             resource.Add(-1 * resourceCost.Value);
         }
 
-        var affectedProducers = producers.Where(x => IsAffectedResourceProducer(x));
+        var affectedProducers = producers.Where(x => GetAffectedResourceProducer(x));
         foreach (var producer in affectedProducers)
         {
             ApplyTechnologyToResourceProducer(producer);

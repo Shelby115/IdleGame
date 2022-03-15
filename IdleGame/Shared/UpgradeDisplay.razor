@@ -1,7 +1,7 @@
 ﻿@using IdleGame.Domain
 <div>
     <button class="btn btn-primary" @onclick="@(() => Producer.Upgrade(Resources))" disabled="@(IsDisabled)">Buy @(Producer.ResourceName) @(TypeName) +@(Producer.Quantity)</button>
-    Wood: @(Producer.GetUpgradeCosts(Producer)["Wood"]) Stone: @(Producer.GetUpgradeCosts(Producer)["Stone"])
+    Wood: @(Producer.GetUpgradeCosts()["Wood"]) Stone: @(Producer.GetUpgradeCosts()["Stone"])
 </div>
 
 @code {

@@ -1,10 +1,16 @@
 ﻿@page "/"
-@using IdleGame.Domain
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IConfiguration Config
 
 <PageTitle>Game</PageTitle>
 
 <GameDisplay Game="@Game" />
+
+
+<h4>Game Settings</h4>
+<p>An autosave occurs every 30 seconds.</p>
+<button id="Save" class="btn btn-primary" onclick=@(async () => await SaveGameAsync())>Save</button>
+<button id="NewGame" class="btn btn-danger" onclick="@(NewGame)">New Game</button>
 
 <style>
     div {
@@ -15,25 +21,36 @@
 
 @code {
     private Game Game = new Game();
+    private Timer AutosaveTimer;
+    
 
-    public async Task<SavedGame> LoadOrNewGameAsync()
+    public async Task<SavedGame> TryLoadGameAsync()
     {
         var savedGame = await localStorage.GetItemAsync<SavedGame>("Game");
         if (savedGame != null)
         {
             Game.LoadGame(savedGame);
         }
-        else
-        {
-            Game.NewGame();
-        }
 
         return null;
     }
 
+    public void NewGame()
+    {
+        Game = new Game();
+        AutosaveTimer.Change(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+    }
+
+    public async Task SaveGameAsync()
+    {
+        await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame());
+        Console.WriteLine("Game saved.");
+    }
+
     protected override async Task<SavedGame> OnInitializedAsync()
     {
-        await LoadOrNewGameAsync();
+        await TryLoadGameAsync();
+        AutosaveTimer = new Timer(AutoSaveTimerCallback, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
         base.OnInitialized();
         return null;
@@ -43,5 +60,11 @@
     private void StateHasChangedTimerCallback(object? state)
     {
         StateHasChanged();
+    }
+
+    private void AutoSaveTimerCallback(object? state)
+    {
+        Console.WriteLine("Autosaving...");
+        Task.Run(async () => await SaveGameAsync());
     }
 }

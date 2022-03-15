@@ -15,18 +15,35 @@ public class Resources : IEnumerable<IResource>
     {
         foreach(var resource in resources)
         {
-            Add(resource);
+            _Resources.Add(resource.Name, resource);
+            resource.Penalized += PenalizeOtherResources;
         }
     }
 
-    public IResource Get(string name)
+    public IResource? Get(string name)
     {
-        return _Resources[name];
+        return _Resources.TryGetValue(name, out var resource)
+             ? resource
+             : null;
     }
 
-    public void Add(IResource resource)
+    public void SetResourceQuantity(string resourceName, long quantity)
     {
-        _Resources.Add(resource.Name, resource);
+        _Resources[resourceName].Add(quantity - _Resources[resourceName].Quantity);
+    }
+
+    /// <summary>
+    /// Subtracts the penalty amount from other resources when a resource fires the penalized event.
+    /// </summary>
+    private void PenalizeOtherResources(object? sender, ResourcePenaltyEventArgs e)
+    {
+        if ((e?.PenaltyAmount ?? 0) == 0) { return; }
+
+        foreach (var resource in _Resources.Values)
+        {
+            if (resource.Name == e.ResourceName) { continue; }
+            resource.Add(e.PenaltyAmount);
+        }
     }
 
     public IEnumerator<IResource> GetEnumerator()

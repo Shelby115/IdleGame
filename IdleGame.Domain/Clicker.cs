@@ -2,8 +2,8 @@
 
 public class Clicker : ResourceProducer
 {
-    public Clicker(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts, float? multiplier = 1.0f, int? timesUpgraded = null)
-        : base(name, resource, quantity, cooldown, getUpgradeCosts, multiplier, timesUpgraded)
+    public Clicker(string name, IResource resource, int quantity, TimeSpan cooldown)
+        : base(name, resource, quantity, cooldown)
     {
 
     }
@@ -13,5 +13,10 @@ public class Clicker : ResourceProducer
         base.ProduceResource(state);
         // Clickers should wait for the StartResourceProduction() to be called manually.
         Timer.Change(Timeout.InfiniteTimeSpan, TimeSpan.Zero);
+    }
+
+    public override string ToString()
+    {
+        return this.Name;
     }
 }

@@ -4,8 +4,8 @@ public class Collector : ResourceProducer
 {
     public override bool IsAutomatic => true;
 
-    public Collector(string name, IResource resource, int quantity, TimeSpan cooldown, Func<IResourceProducer, IDictionary<string, int>> getUpgradeCosts, float? multiplier = 1.0f, int? timesUpgraded = null)
-        : base(name, resource, quantity, cooldown, getUpgradeCosts, multiplier, timesUpgraded)
+    public Collector(string name, IResource resource, int quantity, TimeSpan cooldown)
+        : base(name, resource, quantity, cooldown)
     {
         StartResourceProduction();
     }
@@ -15,5 +15,10 @@ public class Collector : ResourceProducer
         base.ProduceResource(state);
         // Collectors should automatically call StartResourceProduction() when the timer completes.
         StartResourceProduction();
+    }
+
+    public override string ToString()
+    {
+        return this.Name;
     }
 }

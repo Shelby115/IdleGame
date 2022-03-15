@@ -33,9 +33,7 @@ public class SavedGame
 public class SavedResourceProducer
 {
     public string Name { get; set; }
-    public string ResourceName { get; set; }
     public int Quantity { get; set; }
     public int TimesUpgraded { get; set; }
     public float Multiplier { get; set; }
-    public bool IsAutomatic { get; set; }
 }
