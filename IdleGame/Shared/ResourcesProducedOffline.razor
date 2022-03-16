@@ -1,0 +1,29 @@
+﻿@inject IModalService modal 
+
+<h4>You produced the following resources while offline for @String.Format("{0:n0}", SecondsOffline) seconds.</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Resource</th>
+            <th>Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var resource in Resources)
+        {
+            <tr>
+                <td>@resource.Key</td>
+                <td>@String.Format("{0:n0}", resource.Value)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public IDictionary<string, long> Resources { get; set; }
+
+    [Parameter]
+    public long SecondsOffline { get; set; }
+}

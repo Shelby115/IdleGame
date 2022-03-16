@@ -4,12 +4,14 @@ public class Game
 {
     private static readonly TimeSpan AutosaveInterval = TimeSpan.FromSeconds(30);
     private readonly Timer AutosaveTimer;
+    private DateTime LastSavedOn = DateTime.UtcNow;
 
     public Resources Resources { get; private set; }
     public ResourceProducers Producers { get; private set; }
     public Technologies Technologies { get; private set; }
 
     public event EventHandler<SaveEventArgs>? Saved;
+    public event EventHandler<OfflineProductionEventArgs>? ResourcesProducedWhileOffline;
 
     public bool IsDoneLoading = false;
 
@@ -120,6 +122,8 @@ public class Game
 
     public void LoadGame(SavedGame savedGame)
     {
+        LastSavedOn = savedGame.LastSavedOn;
+
         // Load resource quantities.
         foreach (var resource in savedGame.Resources)
         {
@@ -143,13 +147,45 @@ public class Game
             technology.HasBeenPurchased = technologyStatus.Value;
         }
 
+        // Calculate, announce, and add resources produced offline.
+        var secondsOffline = CalculateSecondsOffline();
+        var resourcesProducedOffline = CalculateResourcesProducedWhileOffline(secondsOffline);
+        if (resourcesProducedOffline != null && resourcesProducedOffline.Values.Sum() > 0)
+        {
+            ResourcesProducedWhileOffline?.Invoke(this, new OfflineProductionEventArgs(resourcesProducedOffline, secondsOffline));
+            foreach (var resources in resourcesProducedOffline)
+            {
+                Resources.Get(resources.Key)?.Add(resources.Value);
+            }
+        }
+
         IsDoneLoading = true;
+    }
+
+    private long CalculateSecondsOffline()
+    {
+        var now = DateTime.UtcNow;
+        var timeDifference = now - LastSavedOn;
+        return (long)timeDifference.TotalSeconds;
+    }
+    private IDictionary<string, long> CalculateResourcesProducedWhileOffline(long secondsOffline)
+    {
+        if (secondsOffline > 0)
+        {
+            return Resources.ToDictionary(
+                x => x.Name,
+                x => Producers.GetNetProductionPerSecond(x.Name) * secondsOffline
+            );
+        }
+
+        return null;
     }
 
     public SavedGame AsSavedGame()
     {
         return new SavedGame()
         {
+            LastSavedOn = this.LastSavedOn,
             Resources = Resources.ToDictionary(x => x.Name, x => x.Quantity),
             Technologies = Technologies.ToDictionary(x => x.Name, x => x.HasBeenPurchased),
             ResourceProducers = Producers.ToDictionary(x => x.Name, x => new SavedResourceProducer()
@@ -164,6 +200,7 @@ public class Game
 
     public void Save()
     {
+        LastSavedOn = DateTime.UtcNow;
         var args = new SaveEventArgs(this.AsSavedGame());
         Saved?.Invoke(this, args);
     }

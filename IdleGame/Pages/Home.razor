@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IConfiguration Config
+@inject IModalService modal 
 
 <PageTitle>Game</PageTitle>
 
@@ -22,9 +23,25 @@
 @code {
     private Game Game = new Game();
 
-    public void NewGame()
+    protected override async Task OnInitializedAsync()
     {
-        Game = new Game();
+        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        Game.Saved += SaveGame;
+        Game.ResourcesProducedWhileOffline += AnnounceResourcesProducedOffline;
+        await TryLoadGameAsync();
+        base.OnInitialized();
+    }
+
+    private Timer StateHasChangedTimer;
+    private void StateHasChangedTimerCallback(object? state)
+    {
+        StateHasChanged();
+    }
+
+    public void SaveGame(object? sender, SaveEventArgs e)
+    {
+        Task.Run(async () => await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame()));
+        Console.WriteLine("Game saved.");
     }
 
     public async Task<SavedGame> TryLoadGameAsync()
@@ -38,23 +55,16 @@
         return null;
     }
 
-    public void SaveGame(object? sender, SaveEventArgs e)
+    public void AnnounceResourcesProducedOffline(object? sender, OfflineProductionEventArgs e)
     {
-        Task.Run(async () => await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame()));
-        Console.WriteLine("Game saved.");
+        var parameters = new ModalParameters();
+        parameters.Add("Resources", e.ResourcesProducedWhileOffline);
+        parameters.Add("SecondsOffline", e.SecondsOffline);
+        modal.Show<ResourcesProducedOffline>("Resources Produced Offline", parameters);
     }
 
-    protected override async Task OnInitializedAsync()
+    public void NewGame()
     {
-        StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-        Game.Saved += SaveGame;
-        await TryLoadGameAsync();
-        base.OnInitialized();
-    }
-
-    private Timer StateHasChangedTimer;
-    private void StateHasChangedTimerCallback(object? state)
-    {
-        StateHasChanged();
+        Game = new Game();
     }
 }

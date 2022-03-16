@@ -2,6 +2,7 @@
 
 public class SavedGame
 {
+    public DateTime LastSavedOn { get; set; }
     public IDictionary<string, long> Resources { get; set; }
     public IDictionary<string, SavedResourceProducer> ResourceProducers { get; set; }
     public IDictionary<string, bool> Technologies { get; set; }

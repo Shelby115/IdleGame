@@ -42,6 +42,13 @@ public class ResourceProducers : IEnumerable<IResourceProducer>
              : null;
     }
 
+    public int GetNetProductionPerSecond(string resourceName)
+    {
+        return _Producers.Values
+            .Where(x => x.ResourceName == resourceName && x.IsAutomatic)
+            .Sum(x => x.GetProductionQuantity());
+    }
+
     public int GetProduction(string resourceName)
     {
         return _Producers.Values
