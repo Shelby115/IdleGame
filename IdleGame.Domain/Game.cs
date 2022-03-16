@@ -2,14 +2,21 @@
 
 public class Game
 {
+    private static readonly TimeSpan AutosaveInterval = TimeSpan.FromSeconds(30);
+    private readonly Timer AutosaveTimer;
+
     public Resources Resources { get; private set; }
     public ResourceProducers Producers { get; private set; }
     public Technologies Technologies { get; private set; }
+
+    public event EventHandler<SaveEventArgs>? Saved;
 
     public bool IsDoneLoading = false;
 
     public Game()
     {
+        AutosaveTimer = new Timer(Autosave, null, AutosaveInterval, AutosaveInterval);
+
         // Initialize resources.
         Resources = new Resources(new List<Resource>()
         {
@@ -153,5 +160,16 @@ public class Game
                 Multiplier = x.Multiplier
             })
         };
+    }
+
+    public void Save()
+    {
+        var args = new SaveEventArgs(this.AsSavedGame());
+        Saved?.Invoke(this, args);
+    }
+
+    private void Autosave(object? state)
+    {
+        Save();
     }
 }

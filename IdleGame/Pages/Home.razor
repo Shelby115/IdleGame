@@ -9,7 +9,7 @@
 
 <h4>Game Settings</h4>
 <p>An autosave occurs every 30 seconds.</p>
-<button id="Save" class="btn btn-primary" onclick=@(async () => await SaveGameAsync())>Save</button>
+<button id="Save" class="btn btn-primary" onclick=@(Game.Save)>Save</button>
 <button id="NewGame" class="btn btn-danger" onclick="@(NewGame)">New Game</button>
 
 <style>
@@ -21,8 +21,11 @@
 
 @code {
     private Game Game = new Game();
-    private Timer AutosaveTimer;
-    
+
+    public void NewGame()
+    {
+        Game = new Game();
+    }
 
     public async Task<SavedGame> TryLoadGameAsync()
     {
@@ -35,36 +38,23 @@
         return null;
     }
 
-    public void NewGame()
+    public void SaveGame(object? sender, SaveEventArgs e)
     {
-        Game = new Game();
-        AutosaveTimer.Change(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
-    }
-
-    public async Task SaveGameAsync()
-    {
-        await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame());
+        Task.Run(async () => await localStorage.SetItemAsync<SavedGame>("Game", Game.AsSavedGame()));
         Console.WriteLine("Game saved.");
     }
 
-    protected override async Task<SavedGame> OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await TryLoadGameAsync();
-        AutosaveTimer = new Timer(AutoSaveTimerCallback, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         StateHasChangedTimer = new Timer(StateHasChangedTimerCallback, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        Game.Saved += SaveGame;
+        await TryLoadGameAsync();
         base.OnInitialized();
-        return null;
     }
 
     private Timer StateHasChangedTimer;
     private void StateHasChangedTimerCallback(object? state)
     {
         StateHasChanged();
-    }
-
-    private void AutoSaveTimerCallback(object? state)
-    {
-        Console.WriteLine("Autosaving...");
-        Task.Run(async () => await SaveGameAsync());
     }
 }
