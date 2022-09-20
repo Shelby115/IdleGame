@@ -25,7 +25,7 @@ namespace IdleGame.Domain
         IDictionary<string, int> GetUpgradeCosts();
         void StartResourceProduction();
         bool Upgrade(Resources resources);
-        void UpgradeMultiplier(float multiplierAmountToAdd);
+        bool UpgradeMultiplier(float multiplierAmountToAdd);
         void UpgradeForFree();
         void UpgradeMultiplierForFree(float multiplierAmountToAdd);
 

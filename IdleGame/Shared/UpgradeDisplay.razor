@@ -1,6 +1,6 @@
 ﻿@using IdleGame.Domain
 <div>
-    <button class="btn btn-primary" @onclick="@(() => Producer.Upgrade(Resources))" disabled="@(IsDisabled)">Buy @(Producer.ResourceName) @(TypeName) +@(Producer.Quantity)</button>
+    <button class="btn btn-primary" @onclick="@(OnClick)" disabled="@(IsDisabled)">Buy @(Producer.ResourceName) @(TypeName) +@(Producer.Quantity)</button>
     Wood: @(Producer.GetUpgradeCosts()["Wood"]) Stone: @(Producer.GetUpgradeCosts()["Stone"])
 </div>
 
@@ -29,5 +29,17 @@
     {
         IsDisabled = Producer.CanAffordUpgradeCosts(Resources) == false;
         StateHasChanged();
+    }
+    private void OnClick(MouseEventArgs e)
+    {
+        var upgradeCount = e.CtrlKey ? 100
+            : e.ShiftKey ? 10
+            : 1;
+
+        for (var i = 0; i < upgradeCount; i++)
+        {
+            var wasUpgraded = Producer.Upgrade(Resources);
+            if (wasUpgraded == false) { break; }
+        }
     }
 }

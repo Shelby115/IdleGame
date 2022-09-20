@@ -161,13 +161,13 @@ public class ResourceProducer : IResourceProducer
     /// <summary>
     /// Upgrades the resource producer's multiplier by the specified amount.
     /// </summary>
-    public void UpgradeMultiplier(float multiplierAmountToAdd)
+    public bool UpgradeMultiplier(float multiplierAmountToAdd)
     {
-        if (CanAffordMultiplierUpgrade())
-        {
-            Quantity -= GetMultiplierUpgradeCost();
-            Multiplier += multiplierAmountToAdd;
-        }
+        if (CanAffordMultiplierUpgrade() == false) { return false; }
+
+        Quantity -= GetMultiplierUpgradeCost();
+        Multiplier += multiplierAmountToAdd;
+        return true;
     }
 
     /// <summary>

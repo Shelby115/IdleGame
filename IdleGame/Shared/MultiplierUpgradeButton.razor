@@ -1,6 +1,6 @@
 ﻿@using IdleGame.Domain
 <div>
-    <button class="btn btn-primary" @onclick="@(() => Producer.UpgradeMultiplier(0.1f))" disabled="@(IsDisabled)">Upgrade @(Producer.ResourceName) @(TypeName) +@((int)((Producer.Multiplier - 1.0f)*100))%</button>
+    <button class="btn btn-primary" @onclick="@(OnClick)" disabled="@(IsDisabled)">Upgrade @(Producer.ResourceName) @(TypeName) +@((int)((Producer.Multiplier - 1.0f)*100))%</button>
     +10% for -@(Producer.GetMultiplierUpgradeCost()) @(TypeName)
 </div>
 
@@ -26,5 +26,17 @@
     {
         IsDisabled = Producer.CanAffordMultiplierUpgrade() == false;
         StateHasChanged();
+    }
+    private void OnClick(MouseEventArgs e)
+    {
+        var upgradeCount = e.CtrlKey ? 100
+            : e.ShiftKey ? 10
+            : 1;
+
+        for (var i = 0; i < upgradeCount; i++)
+        {
+            var wasUpgraded = Producer.UpgradeMultiplier(0.1f);
+            if (wasUpgraded == false) { break; }
+        }
     }
 }
