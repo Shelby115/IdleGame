@@ -13,12 +13,11 @@ div.resource-icon-container {
 
 .resource {
     max-height: 32px;
+    margin-right: 15px;
 }
 
 .resources {
-    display: flex;
-    justify-content: space-between;
-    width: 525px;
+    display: flex
 }
 
 .resource-production {
