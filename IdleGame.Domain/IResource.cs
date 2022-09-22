@@ -3,6 +3,7 @@
     public interface IResource
     {
         string Name { get; }
+        string ImageName { get; }
         long Quantity { get; }
         int NegativePenaltyRateForOtherResources { get; }
 

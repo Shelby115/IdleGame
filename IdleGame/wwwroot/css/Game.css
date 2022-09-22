@@ -1,0 +1,26 @@
+﻿img.resource-icon {
+    max-width: 32px;
+    max-height: 32px;
+}
+
+div.resource-icon-container {
+    display: inline-block;
+    text-align: center;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+}
+
+.resource {
+    max-height: 32px;
+}
+
+.resources {
+    display: flex;
+    justify-content: space-between;
+    width: 525px;
+}
+
+.resource-production {
+    font-size: 12px;
+}

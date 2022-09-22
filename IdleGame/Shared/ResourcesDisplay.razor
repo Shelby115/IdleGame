@@ -3,10 +3,16 @@
 <div class="resources">
     @foreach (var resource in Resources)
     {
+        var production = GetProduction(resource.Name);
+        var consumption = GetConsumption(resource.Name);
+        var isPositiveProduction = production >= consumption;
+
         <div class="resource">
-            @(resource.Name): @(resource.Quantity)
-            <span style="color: red;">@(displayConsumption(resource.Name) ? $"({GetConsumption(resource.Name)})/s" : "")</span>
-            <span style="color: green;">@(displayProduction(resource.Name) ? $"(+{GetProduction(resource.Name)})/s" : "")</span>
+            <div class="resource-icon-container">
+                <img src="images/@(resource.ImageName)" class="resource-icon" />
+            </div>
+            @(resource.Quantity.ToString("N0"))
+            <span class="resource-production" style="color: @(isPositiveProduction ? "green" : "red");">@($"{(isPositiveProduction ? "+" : "-")}{(production - consumption):N0}")/s</span>
         </div>
     }
 </div>

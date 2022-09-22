@@ -22,9 +22,9 @@ public class Game
         // Initialize resources.
         Resources = new Resources(new List<Resource>()
         {
-            new Resource("Wood", 10000, 0),
-            new Resource("Stone", 10000, 0),
-            new Resource("Food", 2500, 2)
+            new Resource("Wood", "BasicTree.png", 10000, 0),
+            new Resource("Stone", "BasicStone.png", 10000, 0),
+            new Resource("Food", "BasicFood.png", 2500, 2)
         });
 
         // Intialize resource producers/consumers.

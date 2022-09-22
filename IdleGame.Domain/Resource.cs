@@ -3,6 +3,7 @@
 public class Resource : IResource
 {
     public string Name { get; set; }
+    public string ImageName { get; set; }
     public long Quantity { get; set; }
     public int NegativePenaltyRateForOtherResources { get; set; }
 
@@ -13,9 +14,10 @@ public class Resource : IResource
     public event EventHandler<ResourcePenaltyEventArgs>? Penalized;
 
     public Resource() { }
-    public Resource(string name, long quantity, int negativePenaltyRateForOtherResources)
+    public Resource(string name, string imageName, long quantity, int negativePenaltyRateForOtherResources)
     {
         Name = name?.Trim() ?? throw new ArgumentNullException(nameof(name));
+        ImageName = imageName;
         Quantity = quantity;
         NegativePenaltyRateForOtherResources = negativePenaltyRateForOtherResources;
     }
